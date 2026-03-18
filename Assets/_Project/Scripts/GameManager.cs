@@ -11,14 +11,16 @@ namespace _Project.Scripts
         public static GameManager Instance;
 
         [Header("UI & Grid References")]
-        public GameObject cardPrefab;
-        public Transform gridParent;
-        public GridLayoutGroup gridLayout;
-        public Sprite[] cardSprites; // Assign your card face textures here
+        [SerializeField] private GameObject cardPrefab;
+        [SerializeField] private Transform gridParent;
+        [SerializeField] private GridLayoutGroup gridLayout;
+        [SerializeField] private Sprite[] cardSprites; // List of face up cards (various shapes)
+        [SerializeField] private GameUI gameUI;
 
         private List<Card> _allCards;
         private int _currentRows, _currentCols;
         private Card _activeCard;
+        private int _score, _turns, _combo = 1;
 
         private void Awake()
         {
@@ -27,8 +29,8 @@ namespace _Project.Scripts
 
         private void Start()
         {
-            _currentRows = 2;
-            _currentCols = 2;
+            _currentRows = 5;
+            _currentCols = 6;
             _allCards = new List<Card>();
             SetupGrid(_currentRows, _currentCols);
             var deck = GenerateDeck(_currentRows, _currentCols);
@@ -36,6 +38,7 @@ namespace _Project.Scripts
             {
                 CreateCard(id);
             }
+            UpdateUI();
         }
 
         // --- Grid & Deck Management ---
@@ -97,19 +100,30 @@ namespace _Project.Scripts
 
         private IEnumerator ProcessMatch(Card c1, Card c2)
         {
+            _turns++;
             yield return new WaitForSeconds(0.4f);
             if (c1.cardID == c2.cardID)
             {
                 // Match Found
                 c1.SetMatched();
                 c2.SetMatched();
+                _score += 100 * _combo;
+                _combo++;
             }
             else
             {
                 // Match Failed
                 StartCoroutine(c1.Flip(false));
                 StartCoroutine(c2.Flip(false));
+                _combo = 1;
             }
+
+            UpdateUI();
+        }
+
+        private void UpdateUI()
+        {
+            gameUI.UpdateVisuals(_score, _turns, _combo);
         }
     }
 }
