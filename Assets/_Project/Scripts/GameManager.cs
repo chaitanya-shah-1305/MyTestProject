@@ -29,18 +29,11 @@ namespace _Project.Scripts
             if (Instance == null) Instance = this;
         }
 
-        private void Start()
-        {
-            _currentRows = 2;
-            _currentCols = 2;
-            StartNewGame();
-        }
-
-        public void StartNewGame()
+        public void StartNewGame(int row, int col)
         {
             _allCards = new List<Card>();
-            SetupGrid(_currentRows, _currentCols);
-            var deck = GenerateDeck(_currentRows, _currentCols);
+            SetupGrid(row, col);
+            var deck = GenerateDeck(row, col);
             foreach (var id in deck)
             {
                 CreateCard(id);
