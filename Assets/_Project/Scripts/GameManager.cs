@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -29,8 +31,13 @@ namespace _Project.Scripts
 
         private void Start()
         {
-            _currentRows = 5;
-            _currentCols = 6;
+            _currentRows = 2;
+            _currentCols = 2;
+            StartNewGame();
+        }
+
+        public void StartNewGame()
+        {
             _allCards = new List<Card>();
             SetupGrid(_currentRows, _currentCols);
             var deck = GenerateDeck(_currentRows, _currentCols);
@@ -109,6 +116,7 @@ namespace _Project.Scripts
                 c2.SetMatched();
                 _score += 100 * _combo;
                 _combo++;
+                CheckWinCondition();
             }
             else
             {
@@ -124,6 +132,31 @@ namespace _Project.Scripts
         private void UpdateUI()
         {
             gameUI.UpdateVisuals(_score, _turns, _combo);
+        }
+
+        private void CheckWinCondition()
+        {
+            var isComplete = true;
+            foreach (var c in _allCards)
+            {
+                if (c.isMatched) continue;
+                isComplete = false;
+                break;
+            }
+
+            if (!isComplete) return;
+            UIController.Instance.ShowLevelCompleteScreen(_score, _turns);
+            ClearBoard();
+        }
+
+        private void ClearBoard()
+        {
+            foreach (Transform t in gridParent) Destroy(t.gameObject);
+            _allCards.Clear();
+            _score = 0;
+            _turns = 0;
+            _combo = 1;
+            UpdateUI();
         }
     }
 }
