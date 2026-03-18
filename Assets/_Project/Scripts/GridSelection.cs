@@ -47,6 +47,7 @@ namespace _Project.Scripts
                     col = 5;
                     break;
             }
+            
 
             UIController.Instance.StartGameFromGridSelection(row, col);
         }

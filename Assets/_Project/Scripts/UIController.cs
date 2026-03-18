@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace _Project.Scripts
@@ -6,13 +5,26 @@ namespace _Project.Scripts
     public class UIController : MonoBehaviour
     {
         public static UIController Instance;
-        [SerializeField] private GameObject gridSelection, gameplayScreen; 
+        [SerializeField] private GameObject mainMenu, gridSelection, gameplayScreen; 
         [SerializeField] private GameManager gameManager;
         [SerializeField] private LevelComplete levelComplete;
 
         private void Awake()
         {
             if (Instance == null) Instance = this;
+        }
+
+        public void ResumeSavedGame()
+        {
+            mainMenu.SetActive(false);
+            gameplayScreen.SetActive(true);
+            gameManager.LoadGameProgress();
+        }
+
+        public void OpenGridSelectionFromMenu()
+        {
+            mainMenu.SetActive(false);
+            gridSelection.SetActive(true);
         }
 
         public void StartGameFromGridSelection(int row, int col)

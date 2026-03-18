@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -19,7 +17,7 @@ namespace _Project.Scripts
         [SerializeField] private Sprite[] cardSprites; // List of face up cards (various shapes)
         [SerializeField] private GameUI gameUI;
 
-        private List<Card> _allCards;
+        private List<Card> _allCards = new List<Card>();
         private int _currentRows, _currentCols;
         private Card _activeCard;
         private int _score, _turns, _combo = 1;
@@ -31,7 +29,8 @@ namespace _Project.Scripts
 
         public void StartNewGame(int row, int col)
         {
-            _allCards = new List<Card>();
+            _currentRows = row;
+            _currentCols = col;
             SetupGrid(row, col);
             var deck = GenerateDeck(row, col);
             foreach (var id in deck)
@@ -80,6 +79,48 @@ namespace _Project.Scripts
             _allCards.Add(c);
         }
 
+        private void SaveGameProgress()
+        {
+            var data = new GameSaveData
+            {
+                score = _score,
+                turns = _turns,
+                combo = _combo,
+                rows = _currentRows,
+                cols = _currentCols,
+                deckIds = new List<int>(),
+                matchedState = new List<bool>()
+            };
+            foreach (var card in _allCards)
+            {
+                data.deckIds.Add(card.cardID);
+                data.matchedState.Add(card.isMatched);
+            }
+
+            PlayerPrefs.SetString("SavedGame", JsonUtility.ToJson(data));
+        }
+
+        public void LoadGameProgress()
+        {
+            var data = JsonUtility.FromJson<GameSaveData>(PlayerPrefs.GetString("SavedGame"));
+            ClearBoard();
+            _score = data.score;
+            _turns = data.turns;
+            _combo = data.combo;
+            _currentRows = data.rows;
+            _currentCols = data.cols;
+            SetupGrid(data.rows, data.cols);
+            for (var i = 0; i < data.deckIds.Count; i++)
+            {
+                CreateCard(data.deckIds[i]);
+                if (!data.matchedState[i]) continue;
+                _allCards[i].SetMatched();
+                //_allCards[i].gameObject.SetActive(false);
+                _allCards[i].transform.localScale = Vector3.zero;
+            }
+            UpdateUI();
+        }
+
         public void OnCardFlipped(Card card)
         {
             StartCoroutine(card.Flip(true));
@@ -110,6 +151,7 @@ namespace _Project.Scripts
                 _score += 100 * _combo;
                 _combo++;
                 CheckWinCondition();
+                SaveGameProgress();
             }
             else
             {
@@ -138,13 +180,18 @@ namespace _Project.Scripts
             }
 
             if (!isComplete) return;
+            // Clear the saved data since the game is finished
+            PlayerPrefs.DeleteKey("SavedGame");
             UIController.Instance.ShowLevelCompleteScreen(_score, _turns);
             ClearBoard();
         }
 
         private void ClearBoard()
         {
-            foreach (Transform t in gridParent) Destroy(t.gameObject);
+            foreach (Transform t in gridParent)
+            {
+                if (t != null) Destroy(t.gameObject);
+            }
             _allCards.Clear();
             _score = 0;
             _turns = 0;
@@ -152,4 +199,12 @@ namespace _Project.Scripts
             UpdateUI();
         }
     }
+}
+
+[System.Serializable]
+public class GameSaveData
+{
+    public int score, turns, combo, rows, cols;
+    public List<int> deckIds;
+    public List<bool> matchedState;
 }
