@@ -41,6 +41,8 @@ namespace _Project.Scripts
 
             var spriteSwapped = false;
 
+            if (faceUp) AudioManager.Instance.PlayFlipSound();
+
             while (time < FlipDuration)
             {
                 time += Time.deltaTime;

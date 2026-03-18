@@ -156,6 +156,7 @@ namespace _Project.Scripts
             else
             {
                 // Match Failed
+                AudioManager.Instance.PlayMismatchSound();
                 StartCoroutine(c1.Flip(false));
                 StartCoroutine(c2.Flip(false));
                 _combo = 1;
@@ -179,9 +180,15 @@ namespace _Project.Scripts
                 break;
             }
 
-            if (!isComplete) return;
+            if (!isComplete)
+            {
+                // Play match sound
+                AudioManager.Instance.PlayMatchSound();
+                return;
+            }
             // Clear the saved data since the game is finished
             PlayerPrefs.DeleteKey("SavedGame");
+            AudioManager.Instance.PlayLevelCompleteSound();
             UIController.Instance.ShowLevelCompleteScreen(_score, _turns);
             ClearBoard();
         }
